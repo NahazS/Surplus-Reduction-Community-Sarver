@@ -33,7 +33,22 @@ async function run() {
     const RequestFoodCollection = client.db('SurplusReductionCommunity').collection("requestFood")
 
 
-    
+    app.get('/availableFood', async(req,res) => {
+        if(req.query.foodName)
+        {
+            const query = {foodName: {$regex: req.query.foodName, $options: "i"}}
+            const result = await AvailableFoodCollection.find(query).toArray()
+            return res.send(result)
+        } else if (req.query.donatorEmail)
+        {
+            const query = {donatorEmail: req.query.donatorEmail}
+            const result = await AvailableFoodCollection.find(query).toArray()
+            return res.send(result)
+        }
+        const cursor = AvailableFoodCollection.find()
+        const result = await cursor.toArray()
+        res.send(result)
+    })
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
