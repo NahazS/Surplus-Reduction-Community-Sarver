@@ -57,6 +57,11 @@ async function run() {
         res.send(result)
     })
 
+    app.post('/availableFood', async(req, res) => {
+        const food = req.body
+        const result = await AvailableFoodCollection.insertOne(food)
+        res.send(result)
+    })
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
