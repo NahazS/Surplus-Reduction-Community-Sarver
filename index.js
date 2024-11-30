@@ -55,6 +55,15 @@ async function run() {
     const RequestFoodCollection = client.db('SurplusReductionCommunity').collection("requestFood")
 
     app.post("/jwt", async (req, res) => {
+        const existingToken = req.cookies.token; 
+        if (existingToken) {
+          try {
+              const decoded = jwt.verify(existingToken, process.env.ACCESS_TOKEN_SECRET);
+              return res.send({ token: existingToken });
+          } catch (err) {
+              console.log("Token expired or invalid, generating a new one.");
+          }
+        }
         const user = req.body;
         const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
         res
@@ -128,7 +137,12 @@ async function run() {
         res.send(result)
     })
 
-    app.get('/requestFood', async(req,res) => {
+    app.get('/requestFood',verifyToken, async(req,res) => {
+        console.log('token owner info', req.user, req.query.requestUserEmail)
+        if(req.user.email !== req.query.requestUserEmail)
+        {
+          return res.status(403).send({message: 'forbidden access'})
+        }
         if(req.query.requestUserEmail)
         {
             const query = {requestUserEmail: req.query.requestUserEmail}
