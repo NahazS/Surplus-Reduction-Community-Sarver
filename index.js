@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000;
 app.use(
     cors({
       origin: [
-        "http://localhost:5173", 
+        "http://localhost:4001", 
         "https://surplus-reduction-community.web.app", 
         "https://surplus-reduction-community.firebaseapp.com"
         ], // Adjust origin for your frontend domain
@@ -97,6 +97,20 @@ async function run() {
             const query = {donatorEmail: req.query.donatorEmail}
             const result = await AvailableFoodCollection.find(query).toArray()
             return res.send(result)
+        } else if(req.query.page)
+        {
+          const page = parseInt(req.query.page) || 1;
+          const limit = parseInt(req.query.limit) || 10;
+          const skip = (page - 1) * limit;
+          const cursor = AvailableFoodCollection.find().skip(skip).limit(limit)
+          const result = await cursor.toArray()
+          const totalItems = await AvailableFoodCollection.countDocuments()
+          return res.send({
+            data: result,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+            currentPage: page
+          })
         }
         const cursor = AvailableFoodCollection.find()
         const result = await cursor.toArray()
