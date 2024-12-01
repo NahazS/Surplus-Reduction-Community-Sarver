@@ -12,7 +12,11 @@ const port = process.env.PORT || 3000;
 
 app.use(
     cors({
-      origin: ["http://localhost:5173"], // Adjust origin for your frontend domain
+      origin: [
+        "http://localhost:5173", 
+        "https://surplus-reduction-community.web.app", 
+        "https://surplus-reduction-community.firebaseapp.com"
+        ], // Adjust origin for your frontend domain
       credentials: true,
     })
 );
@@ -49,7 +53,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const AvailableFoodCollection = client.db('SurplusReductionCommunity').collection("availableFood")
     const RequestFoodCollection = client.db('SurplusReductionCommunity').collection("requestFood")
@@ -69,15 +73,17 @@ async function run() {
         res
           .cookie("token", token, {
             httpOnly: true,
-            secure: false, // Set to true for production (HTTPS)
-            sameSite: "strict"
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
           })
           .send({ token }); // Ensure response is sent
       });
     
     app.post("/logOut", async (req, res) => {
       const user = req.body;
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+      res
+        .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+        .send({ success: true });
     });
 
     app.get('/availableFood', async(req,res) => {
